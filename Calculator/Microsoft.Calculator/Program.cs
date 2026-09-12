@@ -3,6 +3,7 @@ using Microsoft.Calculator.CalculatorLibrary;
 
 class Program
 {
+  static readonly Calculator calc = new();
   static void Main(string[] args)
   {
     bool endApp = false;
@@ -56,7 +57,7 @@ class Program
       {
         try
         {
-          result = Calculator.DoOperation(cleanNum1, cleanNum2, op);
+          result = calc.DoOperation(cleanNum1, cleanNum2, op);
           if (double.IsNaN(result))
           {
             Console.WriteLine("This operation will result in a mathematical error.\n");
@@ -76,6 +77,7 @@ class Program
 
       Console.WriteLine("\n"); // Friendly linespacing.
     }
+    calc.Finish();
     return;
   }
 }

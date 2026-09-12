@@ -22,6 +22,12 @@ public class UserInterface
           .Title("What do you want to do next?")
           .AddChoices(Enum.GetValues<MenuOption>()));
 
+      if (choice == MenuOption.Exit)
+      {
+        AnsiConsole.MarkupLine("[green]Thank you for visiting![/]");
+        break;
+      }
+
       ItemType itemTypeChoice = AnsiConsole.Prompt(
         new SelectionPrompt<ItemType>()
         .Title("Choose an item")
