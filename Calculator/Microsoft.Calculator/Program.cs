@@ -1,5 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.Calculator.CalculatorLibrary;
+using Microsoft.Calculator.CalculatorLibrary.Enums;
 
 class Program
 {
@@ -13,6 +15,34 @@ class Program
       userInput = Console.ReadLine();
     }
     return cleanInput;
+  }
+  private static OperationType GetValidOperationType()
+  {
+    // Ask the user to choose an operator.
+    Console.WriteLine("Choose an operator from the following list:");
+    Console.WriteLine("\ta - Add");
+    Console.WriteLine("\ts - Subtract");
+    Console.WriteLine("\tm - Multiply");
+    Console.WriteLine("\td - Divide");
+    Console.Write("Your option? ");
+
+    string? opInput = Console.ReadLine();
+
+    while (opInput == null || !Regex.IsMatch(opInput, "^(a|s|m|d)$"))
+    {
+      Console.WriteLine("This is not a valid option. Please choose a, s, m or d");
+      opInput = Console.ReadLine();
+    }
+
+    OperationType op = opInput switch
+    {
+      "a" => OperationType.Add,
+      "s" => OperationType.Subtract,
+      "m" => OperationType.Multiply,
+      _ => OperationType.Divide,
+    };
+
+    return op;
   }
   static readonly Calculator calc = new();
   static void Main(string[] args)
@@ -34,37 +64,22 @@ class Program
       Console.Write("Type another number, and then press Enter: ");
       double cleanNum2 = GetValidNumber();
 
-      // Ask the user to choose an operator.
-      Console.WriteLine("Choose an operator from the following list:");
-      Console.WriteLine("\ta - Add");
-      Console.WriteLine("\ts - Subtract");
-      Console.WriteLine("\tm - Multiply");
-      Console.WriteLine("\td - Divide");
-      Console.Write("Your option? ");
+      OperationType op = GetValidOperationType();
 
-      string? op = Console.ReadLine();
+      try
+      {
+        result = calc.DoOperation(cleanNum1, cleanNum2, op);
+        if (double.IsNaN(result))
+        {
+          Console.WriteLine("This operation will result in a mathematical error.\n");
+        }
+        else Console.WriteLine("Your result: {0:0.##}\n", result);
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine("Oh no! An exception occurred trying to do the math.\n - Details: " + e.Message);
+      }
 
-      // Validate input is not null, and matches the pattern
-      if (op == null || !Regex.IsMatch(op, "^(a|s|m|d)$"))
-      {
-        Console.WriteLine("Error: Unrecognized input.");
-      }
-      else
-      {
-        try
-        {
-          result = calc.DoOperation(cleanNum1, cleanNum2, op);
-          if (double.IsNaN(result))
-          {
-            Console.WriteLine("This operation will result in a mathematical error.\n");
-          }
-          else Console.WriteLine("Your result: {0:0.##}\n", result);
-        }
-        catch (Exception e)
-        {
-          Console.WriteLine("Oh no! An exception occurred trying to do the math.\n - Details: " + e.Message);
-        }
-      }
       Console.WriteLine("------------------------\n");
 
       // Wait for the user to respond before closing.

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Newtonsoft.Json;
+using Microsoft.Calculator.CalculatorLibrary.Enums;
 
 namespace Microsoft.Calculator.CalculatorLibrary;
 
@@ -7,7 +8,7 @@ public class Calculator
 {
   JsonWriter writer;
 
-  private void AddTrace(double num1, double num2, double result, string op)
+  private void AddTrace(double num1, double num2, double result, OperationType op)
   {
     Trace.WriteLine($"{num1} {op} {num2} = {result}");
   }
@@ -22,7 +23,7 @@ public class Calculator
     writer.WritePropertyName("Operations");
     writer.WriteStartArray();
   }
-  public double DoOperation(double num1, double num2, string op)
+  public double DoOperation(double num1, double num2, OperationType op)
   {
     double result = double.NaN;
     writer.WriteStartObject();
@@ -31,23 +32,23 @@ public class Calculator
     writer.WritePropertyName("Operand2");
     writer.WriteValue(num2);
     writer.WritePropertyName("Operation");
-    writer.WriteValue(op);
+    writer.WriteValue(op.ToString());
 
     switch (op)
     {
-      case "a":
+      case OperationType.Add:
         result = num1 + num2;
         AddTrace(num1, num2, result, op);
         break;
-      case "s":
+      case OperationType.Subtract:
         result = num1 - num2;
         AddTrace(num1, num2, result, op);
         break;
-      case "m":
+      case OperationType.Multiply:
         result = num1 * num2;
         AddTrace(num1, num2, result, op);
         break;
-      case "d":
+      case OperationType.Divide:
         if (num2 != 0)
         {
           result = num1 / num2;
