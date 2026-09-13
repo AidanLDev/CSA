@@ -6,6 +6,12 @@ namespace Microsoft.Calculator.CalculatorLibrary;
 public class Calculator
 {
   JsonWriter writer;
+
+  private void AddTrace(double num1, double num2, double result, string op)
+  {
+    Trace.WriteLine($"{num1} {op} {num2} = {result}");
+  }
+
   public Calculator()
   {
     StreamWriter logFile = File.CreateText("calculator.log");
@@ -25,26 +31,27 @@ public class Calculator
     writer.WritePropertyName("Operand2");
     writer.WriteValue(num2);
     writer.WritePropertyName("Operation");
+    writer.WriteValue(op);
 
     switch (op)
     {
       case "a":
         result = num1 + num2;
-        Trace.WriteLine(string.Format("{0} + {1} = {2}", num1, num2, result));
+        AddTrace(num1, num2, result, op);
         break;
       case "s":
         result = num1 - num2;
-        Trace.WriteLine(string.Format("{0} - {1} = {2}", num1, num2, result));
+        AddTrace(num1, num2, result, op);
         break;
       case "m":
         result = num1 * num2;
-        Trace.WriteLine(string.Format("{0} * {1} = {2}", num1, num2, result));
+        AddTrace(num1, num2, result, op);
         break;
       case "d":
         if (num2 != 0)
         {
           result = num1 / num2;
-          Trace.WriteLine(string.Format("{0} / {1} = {2}", num1, num2, result));
+          AddTrace(num1, num2, result, op);
         }
         break;
     }
