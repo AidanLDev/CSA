@@ -1,17 +1,28 @@
 ﻿using System.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.Calculator.CalculatorLibrary.Enums;
+using Microsoft.Calculator.CalculatorLibrary.Models;
 
 namespace Microsoft.Calculator.CalculatorLibrary;
 
 public class Calculator
 {
   JsonWriter writer;
-  public int CalculatorCount { get; private set; }
+  private int CalculatorCount { get; set; }
+  private readonly List<CalculationRecord> history = [];
+  public int GetCalculatorCount()
+  {
+    return CalculatorCount;
+  }
+  public List<CalculationRecord> GetHistory()
+  {
+    return history;
+  }
 
   private void AddTrace(double num1, double num2, double result, OperationType op)
   {
     Trace.WriteLine($"{num1} {op} {num2} = {result}");
+    history.Add(new CalculationRecord(num1, num2, op, result));
   }
 
   public Calculator()
