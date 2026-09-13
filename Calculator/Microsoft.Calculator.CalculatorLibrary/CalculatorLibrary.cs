@@ -7,6 +7,7 @@ namespace Microsoft.Calculator.CalculatorLibrary;
 public class Calculator
 {
   JsonWriter writer;
+  public int CalculatorCount { get; private set; }
 
   private void AddTrace(double num1, double num2, double result, OperationType op)
   {
@@ -33,6 +34,7 @@ public class Calculator
     writer.WriteValue(num2);
     writer.WritePropertyName("Operation");
     writer.WriteValue(op.ToString());
+    CalculatorCount++;
 
     switch (op)
     {
