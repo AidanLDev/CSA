@@ -68,6 +68,30 @@ public class Calculator
           AddTrace(num1, num2, result, op);
         }
         break;
+      case OperationType.SquareRoot:
+        result = Math.Sqrt(num1);
+        AddTrace(num1, num2, result, op);
+        break;
+      case OperationType.TakingThePower:
+        result = Math.Pow(num1, num2);
+        AddTrace(num1, num2, result, op);
+        break;
+      case OperationType.TimesTen:
+        result = num1 * 10;
+        AddTrace(num1, num2, result, op);
+        break;
+      case OperationType.Sine:
+        result = Math.Sin(num1 * Math.PI / 180);
+        AddTrace(num1, num2, result, op);
+        break;
+      case OperationType.Cosine:
+        result = Math.Cos(num1 * Math.PI / 180);
+        AddTrace(num1, num2, result, op);
+        break;
+      case OperationType.Tangent:
+        result = Math.Tan(num1 * Math.PI / 180);
+        AddTrace(num1, num2, result, op);
+        break;
     }
 
     writer.WritePropertyName("Result");

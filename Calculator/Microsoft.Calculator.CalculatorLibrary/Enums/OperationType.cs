@@ -4,5 +4,11 @@ public enum OperationType
   Add,
   Subtract,
   Multiply,
-  Divide
+  Divide,
+  SquareRoot,
+  TakingThePower,
+  TimesTen,
+  Sine,
+  Cosine,
+  Tangent,
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Microsoft.Calculator.CalculatorLibrary;
 using Microsoft.Calculator.CalculatorLibrary.Enums;
 using Microsoft.Calculator.CalculatorLibrary.Models;
@@ -8,43 +7,87 @@ class Program
 {
   private static double GetValidNumber()
   {
+    Console.Write("Type a number: ");
     string? userInput = Console.ReadLine();
-    double cleanInput = 0;
+    double cleanInput;
     while (!double.TryParse(userInput, out cleanInput))
     {
-      Console.Write("This is not valid input. Please neter a numeric value: ");
+      Console.Write("This is not valid input. Please enter a numeric value: ");
       userInput = Console.ReadLine();
     }
     return cleanInput;
+  }
+  private static double GetNumberOrHistoryResult()
+  {
+    List<CalculationRecord> history = calc.GetHistory();
+    if (history.Count == 0) return GetValidNumber();
+
+    Console.Write("Type a number, or 'p' to use a previous result: ");
+    string? userInput = Console.ReadLine();
+
+    if (userInput?.Trim().ToLower() != "p")
+    {
+      double cleanInput;
+      while (!double.TryParse(userInput, out cleanInput))
+      {
+        Console.Write("This is not valid input/ Please enter a numeric value: ");
+        userInput = Console.ReadLine();
+      }
+      return cleanInput;
+    }
+
+    DisplayHistory();
+    Console.Write($"Which result? (1-{history.Count}): ");
+    int index;
+    while (!int.TryParse(Console.ReadLine(), out index) || index < 1 || index > history.Count)
+    {
+      Console.Write($"Please enter a number between 1 and {history.Count}: ");
+    }
+    return history[index - 1].Result;
   }
   private static OperationType GetValidOperationType()
   {
     // Ask the user to choose an operator.
     Console.WriteLine("Choose an operator from the following list:");
-    Console.WriteLine("\ta - Add");
-    Console.WriteLine("\ts - Subtract");
-    Console.WriteLine("\tm - Multiply");
-    Console.WriteLine("\td - Divide");
+    Console.WriteLine("\tadd  - Add");
+    Console.WriteLine("\tsub  - Subtract");
+    Console.WriteLine("\tmul  - Multiply");
+    Console.WriteLine("\tdiv  - Divide");
+    Console.WriteLine("\tsqrt - Square root");
+    Console.WriteLine("\tpow  - Raise to a power");
+    Console.WriteLine("\tx10  - Multiply by 10");
+    Console.WriteLine("\tsin  - Sine (degrees)");
+    Console.WriteLine("\tcos  - Cosine (degrees)");
+    Console.WriteLine("\ttan  - Tangent (degrees)");
     Console.Write("Your option? ");
 
-    string? opInput = Console.ReadLine();
+    string? opInput = Console.ReadLine()?.Trim().ToLower();
 
-    while (opInput == null || !Regex.IsMatch(opInput, "^(a|s|m|d)$"))
+    while (opInput == null || !Regex.IsMatch(opInput, "^(add|sub|mul|div|sqrt|pow|x10|sin|cos|tan)$"))
     {
-      Console.WriteLine("This is not a valid option. Please choose a, s, m or d");
-      opInput = Console.ReadLine();
+      Console.WriteLine("This is not a valid option. Please choose one of the options listed above.");
+      opInput = Console.ReadLine()?.Trim().ToLower();
     }
 
     OperationType op = opInput switch
     {
-      "a" => OperationType.Add,
-      "s" => OperationType.Subtract,
-      "m" => OperationType.Multiply,
-      _ => OperationType.Divide,
+      "add" => OperationType.Add,
+      "sub" => OperationType.Subtract,
+      "mul" => OperationType.Multiply,
+      "div" => OperationType.Divide,
+      "sqrt" => OperationType.SquareRoot,
+      "pow" => OperationType.TakingThePower,
+      "x10" => OperationType.TimesTen,
+      "sin" => OperationType.Sine,
+      "cos" => OperationType.Cosine,
+      _ => OperationType.Tangent,
     };
 
     return op;
   }
+
+  private static bool IsUnaryOperation(OperationType op) =>
+    op is OperationType.SquareRoot or OperationType.TimesTen or OperationType.Sine or OperationType.Cosine or OperationType.Tangent;
 
   private static MenuChoice GetValidMenuChoice()
   {
@@ -67,16 +110,19 @@ class Program
   }
   private static void Calculation()
   {
-    // Ask the user to type the first number.
-    Console.Write("Type a number, and then press Enter: ");
-    double cleanNum1 = GetValidNumber();
+    OperationType op = GetValidOperationType();
 
-    // Ask the user to type the second number.
-    Console.Write("Type another number, and then press Enter: ");
-    double cleanNum2 = GetValidNumber();
+    // Ask the user to type the first number.
+    double cleanNum1 = GetNumberOrHistoryResult();
+
+    double cleanNum2 = 0;
+    if (!IsUnaryOperation(op))
+    {
+      // Ask the user to type the second number.
+      cleanNum2 = GetNumberOrHistoryResult();
+    }
 
     double result;
-    OperationType op = GetValidOperationType();
 
     try
     {
@@ -96,13 +142,35 @@ class Program
       Console.WriteLine("Oh no! An exception occurred trying to do the math.\n - Details: " + e.Message);
     }
   }
+  private static string GetOperationSymbol(OperationType op) => op switch
+  {
+    OperationType.Add => "+",
+    OperationType.Subtract => "-",
+    OperationType.Multiply => "x",
+    OperationType.Divide => "÷",
+    OperationType.SquareRoot => "√",
+    OperationType.TakingThePower => "^",
+    OperationType.TimesTen => "x 10",
+    OperationType.Sine => "sin",
+    OperationType.Cosine => "cos",
+    _ => "tan",
+  };
+
   private static void DisplayHistory()
   {
     List<CalculationRecord> history = calc.GetHistory();
     for (int i = 0; i < history.Count; i++)
     {
       CalculationRecord record = history[i];
-      Console.WriteLine($"{i + 1}. {record.Num1} {record.Operation} {record.Num2} = {record.Result}");
+      string symbol = GetOperationSymbol(record.Operation);
+      string expression = record.Operation switch
+      {
+        OperationType.SquareRoot => $"{symbol}{record.Num1}",
+        OperationType.TimesTen => $"{record.Num1} {symbol}",
+        OperationType.Sine or OperationType.Cosine or OperationType.Tangent => $"{symbol}({record.Num1}°)",
+        _ => $"{record.Num1} {symbol} {record.Num2}",
+      };
+      Console.WriteLine($"{i + 1}. {expression} = {record.Result}");
     }
   }
 
