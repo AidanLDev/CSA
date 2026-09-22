@@ -2,11 +2,28 @@
 using Microsoft.Calculator.CalculatorLibrary;
 using Microsoft.Calculator.CalculatorLibrary.Enums;
 using Microsoft.Calculator.CalculatorLibrary.Models;
+using Microsoft.CognitiveServices.Speech;
+using Microsoft.Extensions.Configuration;
 
 class Program
 {
+  private static string GetSpeechServiceKey()
+  {
+    var config = new ConfigurationBuilder()
+    .AddUserSecrets<Program>()
+    .Build();
+
+    string? key = config["SpeechService:key"];
+    if (key == null)
+    {
+      Console.WriteLine("Issue getting key...");
+      return "N/A";
+    }
+    return key;
+  }
   private static double GetValidNumber()
   {
+    var config = SpeechConfig.FromSubscription(GetSpeechServiceKey(), "uksouth");
     Console.Write("Type a number: ");
     string? userInput = Console.ReadLine();
     double cleanInput;
