@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 using Microsoft.Calculator.CalculatorLibrary;
 using Microsoft.Calculator.CalculatorLibrary.Enums;
 using Microsoft.Calculator.CalculatorLibrary.Models;
@@ -7,19 +8,27 @@ using Microsoft.Extensions.Configuration;
 
 class Program
 {
-  private static string GetSpeechServiceKey()
+  private static string GetSecret(string secretKey)
   {
     var config = new ConfigurationBuilder()
     .AddUserSecrets<Program>()
     .Build();
 
-    string? key = config["SpeechService:key"];
+    string? key = config[secretKey];
     if (key == null)
     {
-      Console.WriteLine("Issue getting key...");
+      Console.WriteLine("Issue getting secret...");
       return "N/A";
     }
     return key;
+  }
+  private static string GetSpeechServiceKey()
+  {
+    return GetSecret("SpeechService:key");
+  }
+  private static string GetSpeechServiceRegion()
+  {
+    return GetSecret("SpeechService:region");
   }
   private static string CleanSpokenNumber(string text) =>
     Regex.Replace(text, @"[^0-9.\-]", "");
@@ -28,7 +37,7 @@ class Program
   {
     try
     {
-      var config = SpeechConfig.FromSubscription(GetSpeechServiceKey(), "uksouth");
+      var config = SpeechConfig.FromSubscription(GetSpeechServiceKey(), GetSpeechServiceRegion());
       using var recognizer = new SpeechRecognizer(config);
       Console.WriteLine("Using your mic, tell us a number...");
       var micResult = await recognizer.RecognizeOnceAsync();
