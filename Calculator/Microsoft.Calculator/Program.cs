@@ -21,9 +21,46 @@ class Program
     }
     return key;
   }
-  private static double GetValidNumber()
+  private static string CleanSpokenNumber(string text) =>
+    Regex.Replace(text, @"[^0-9.\-]", "");
+
+  private static async Task<double?> TryGetNumberFromMic()
   {
-    var config = SpeechConfig.FromSubscription(GetSpeechServiceKey(), "uksouth");
+    try
+    {
+      var config = SpeechConfig.FromSubscription(GetSpeechServiceKey(), "uksouth");
+      using var recognizer = new SpeechRecognizer(config);
+      Console.WriteLine("Using your mic, tell us a number...");
+      var micResult = await recognizer.RecognizeOnceAsync();
+
+      if (micResult.Reason != ResultReason.RecognizedSpeech)
+      {
+        Console.WriteLine("Didn't catch that from the mic, switching to text input.");
+        return null;
+      }
+
+      string cleaned = CleanSpokenNumber(micResult.Text);
+      if (double.TryParse(cleaned, out double spokenNumber))
+      {
+        Console.WriteLine($"Heard: {spokenNumber}");
+        return spokenNumber;
+      }
+
+      Console.WriteLine($"Couldn't turn \"{micResult.Text}\" into a number, switching to text input.");
+      return null;
+    }
+    catch (Exception e)
+    {
+      Console.WriteLine("Mic isn't available, switching to text input.\n - Details: " + e.Message);
+      return null;
+    }
+  }
+
+  private static async Task<double> GetValidNumber()
+  {
+    double? spokenNumber = await TryGetNumberFromMic();
+    if (spokenNumber.HasValue) return spokenNumber.Value;
+
     Console.Write("Type a number: ");
     string? userInput = Console.ReadLine();
     double cleanInput;
@@ -34,10 +71,10 @@ class Program
     }
     return cleanInput;
   }
-  private static double GetNumberOrHistoryResult()
+  private static async Task<double> GetNumberOrHistoryResult()
   {
     List<CalculationRecord> history = calc.GetHistory();
-    if (history.Count == 0) return GetValidNumber();
+    if (history.Count == 0) return await GetValidNumber();
 
     Console.Write("Type a number, or 'p' to use a previous result: ");
     string? userInput = Console.ReadLine();
@@ -125,18 +162,18 @@ class Program
 
     return choice;
   }
-  private static void Calculation()
+  private static async Task Calculation()
   {
     OperationType op = GetValidOperationType();
 
     // Ask the user to type the first number.
-    double cleanNum1 = GetNumberOrHistoryResult();
+    double cleanNum1 = await GetNumberOrHistoryResult();
 
     double cleanNum2 = 0;
     if (!IsUnaryOperation(op))
     {
       // Ask the user to type the second number.
-      cleanNum2 = GetNumberOrHistoryResult();
+      cleanNum2 = await GetNumberOrHistoryResult();
     }
 
     double result;
@@ -192,7 +229,7 @@ class Program
   }
 
   static readonly Calculator calc = new();
-  static void Main(string[] args)
+  static async Task Main(string[] args)
   {
     bool endApp = false;
     // Display title as the C# console calculator app.
@@ -206,7 +243,7 @@ class Program
         MenuChoice choice = GetValidMenuChoice();
         if (choice == MenuChoice.Calculation)
         {
-          Calculation();
+          await Calculation();
         }
         else
         {
@@ -215,7 +252,7 @@ class Program
       }
       else
       {
-        Calculation();
+        await Calculation();
       }
 
       Console.WriteLine("------------------------\n");
